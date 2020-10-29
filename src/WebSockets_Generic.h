@@ -304,7 +304,7 @@
     #include <ESP8266WiFi.h>
   #elif defined(ESP32)
     #include <WiFi.h>
-    #include <WiFiClientSecure.h>
+    #include <rainbowtype.h>
     
     // From v2.3.1
     #define SSL_AXTLS
@@ -386,7 +386,7 @@
 #elif (WEBSOCKETS_NETWORK_TYPE == NETWORK_ESP32)
 
   #include <WiFi.h>
-  #include <WiFiClientSecure.h>
+  #include <rainbowtype.h>
   
   // From v2.3.1
   #define SSL_AXTLS

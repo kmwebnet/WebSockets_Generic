@@ -320,6 +320,9 @@ void WebSocketsClient::loop(void)
 
 #if defined(ESP32)
         _client.ssl->setCACert(_CA_cert);
+        _client.ssl->setCertificate("dummy");
+        _client.ssl->setPrivateKey("dummy");
+        _client.ssl->setHandshakeTimeout(5);
 #elif defined(ESP8266) && defined(SSL_AXTLS)
         _client.ssl->setCACert((const uint8_t *)_CA_cert, strlen(_CA_cert) + 1);
 #elif defined(ESP8266) && ( defined(SSL_BARESSL) || defined(SSL_BEARSSL) )
@@ -365,7 +368,7 @@ void WebSocketsClient::loop(void)
     WEBSOCKETS_YIELD();
 
 #if defined(ESP32)
-    if (_client.tcp->connect(_host.c_str(), _port, WEBSOCKETS_TCP_TIMEOUT))
+    if (_client.tcp->connect(_host.c_str(), _port))
 #else
     if (_client.tcp->connect(_host.c_str(), _port))
 #endif

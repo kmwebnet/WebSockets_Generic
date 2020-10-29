@@ -28,6 +28,9 @@ This [WebSockets_Generic library](https://github.com/khoih-prog/WebSockets_Gener
 Please see illustrating examples.
 
 ---
+## Forked version  
+
+1.add support for rainbowtype arduino boilerplate to enable hardware root of trust based TLS communication.   
 
 ### New in v2.3.1
 

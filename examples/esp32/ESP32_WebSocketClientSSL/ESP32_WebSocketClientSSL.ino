@@ -24,24 +24,22 @@
   2.3.1   K Hoang      07/10/2020 Sync with v2.3.1 of original WebSockets library. Add ENC28J60 EthernetENC library support
 *****************************************************************************************************************************/
 
-#if !defined(ESP32)
-  #error This code is intended to run only on the ESP32 boards ! Please check your Tools->Board setting.
-#endif
-
-#define _WEBSOCKETS_LOGLEVEL_     3
-
+#include <Arduino.h>
 #include <WiFi.h>
-#include <WiFiMulti.h>
-#include <WiFiClientSecure.h>
-
+#include <rainbowtype.h>
 #include <WebSocketsClient_Generic.h>
 
-WiFiMulti WiFiMulti;
-WebSocketsClient webSocket;
+char CLIENT_ID[18];
 
-// Select the IP address according to your local network
-IPAddress clientIP(192, 168, 2, 225);
-IPAddress serverIP(192, 168, 2, 140);
+char wifissid[32];
+char wifipass[64];
+
+const char* root_ca = \
+"-----BEGIN CERTIFICATE-----\n" \
+
+"-----END CERTIFICATE-----\n";
+
+WebSocketsClient webSocket;
 
 void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
 {
@@ -67,22 +65,27 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
   switch (type)
   {
     case WStype_DISCONNECTED:
-      Serial.printf("[WSc] Disconnected!\n");
+      Serial.printf("[WSc] Disconnected!\r\n");
       break;
     case WStype_CONNECTED:
-      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      Serial.printf("[WSc] Connected to url: %s\r\n", payload);
 
       // send message to server when Connected
       webSocket.sendTXT("Connected");
       break;
+      
     case WStype_TEXT:
-      Serial.printf("[WSc] get text: %s\n", payload);
+      if (length == 0) break;
+      payload[length] = 0;
+   
+      Serial.printf("[WSc] get text: %s\r\n", payload);
 
       // send message to server
       webSocket.sendTXT("message here");
       break;
     case WStype_BIN:
-      Serial.printf("[WSc] get binary length: %u\n", length);
+      if (length == 0) break;
+      Serial.printf("[WSc] get binary length: %u\r\n", length);
       hexdump(payload, length);
 
       // send data to server
@@ -100,47 +103,34 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
   }
 }
 
-void setup()
-{
-  // Serial.begin(921600);
+void setup() {
+  // put your setup code here, to run once:
   Serial.begin(115200);
   while (!Serial);
 
   Serial.println("\nStart ESP32_WebSocketClientSSL on " + String(ARDUINO_BOARD));
-
-  //Serial.setDebugOutput(true);
-
-  for (uint8_t t = 4; t > 0; t--)
-  {
-    Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
-    Serial.flush();
-    delay(1000);
-  }
-
-  WiFiMulti.addAP("SSID", "passpasspass");
-
-  //WiFi.disconnect();
-  while (WiFiMulti.run() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(100);
-  }
   
-  Serial.println();
+  getid(CLIENT_ID);
+  wifiinit(wifissid, wifipass);
 
-  // Client address
-  Serial.print("WebSockets Client started @ IP address: ");
-  Serial.println(WiFi.localIP());
+  WiFi.begin(wifissid, wifipass);
+  while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+  }
+  Serial.println("Connected.\r\n");
 
-  // server address, port and URL
-  Serial.print("Connecting to WebSockets Server @ IP address: ");
-  Serial.println(serverIP);
-
-  webSocket.beginSSL(serverIP, 81);
+  webSocket.beginSslWithCA("<URL here>", 3000, "/rtserver", root_ca);
   webSocket.onEvent(webSocketEvent);
 }
 
-void loop() 
-{
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  // waiting for recieving data
   webSocket.loop();
+
+  
+  delay(5) ;
+
 }
